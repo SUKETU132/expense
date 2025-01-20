@@ -27,7 +27,7 @@ const FormSubmit = ({ inputQuery }) => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.get('https://expense-manager-ten-gamma.vercel.app/api/v1/manager/get-expenses', {
+            const response = await axios.get('https://expense-manager-5.onrender.com/api/v1/manager/get-expenses', {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
             setTotalPayable(response.data.totalPayable);
@@ -58,7 +58,7 @@ const FormSubmit = ({ inputQuery }) => {
         try {
             const token = localStorage.getItem('token');
             const response = await axios.put(
-                `https://expense-manager-ten-gamma.vercel.app/api/v1/manager/update-expense/${editExpense._id}`,
+                `https://expense-manager-5.onrender.com/api/v1/manager/update-expense/${editExpense._id}`,
                 {
                     amount: editExpense.amount,
                     paymentStatus: editExpense.paymentStatus,
@@ -106,14 +106,14 @@ const FormSubmit = ({ inputQuery }) => {
         try {
             const token = localStorage.getItem('token');
             const response = await axios.post(
-                'https://expense-manager-ten-gamma.vercel.app/api/v1/manager/add-expense',
+                'https://expense-manager-5.onrender.com/api/v1/manager/add-expense',
                 newExpense,
                 { headers: { 'Authorization': `Bearer ${token}` } }
             );
             setExpenses((prevExpenses) => [...prevExpenses, response.data.data]);
             setShowPopup(false);
             setNewExpense({ name: '', amount: '', paymentStatus: 'payable' });
-            const response1 = await axios.get('https://expense-manager-ten-gamma.vercel.app/api/v1/manager/get-expenses', {
+            const response1 = await axios.get('https://expense-manager-5.onrender.com/api/v1/manager/get-expenses', {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
             setTotalPayable(response1.data.totalPayable);
@@ -132,11 +132,11 @@ const FormSubmit = ({ inputQuery }) => {
 
         try {
             const token = localStorage.getItem('token');
-            await axios.delete(`https://expense-manager-ten-gamma.vercel.app/api/v1/manager/delete-expense/${id}`, {
+            await axios.delete(`https://expense-manager-5.onrender.com/api/v1/manager/delete-expense/${id}`, {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
             setExpenses((prevExpenses) => prevExpenses.filter((expense) => expense._id !== id));
-            const response1 = await axios.get('https://expense-manager-ten-gamma.vercel.app/api/v1/manager/get-expenses', {
+            const response1 = await axios.get('https://expense-manager-5.onrender.com/api/v1/manager/get-expenses', {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
             setTotalPayable(response1.data.totalPayable);
