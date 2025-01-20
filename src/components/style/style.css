@@ -1,0 +1,336 @@
+.profile {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Container styling */
+.form-submit-container {
+    position: relative;
+    padding: 20px;
+}
+
+/* Expenses list */
+.expenses-list {
+    list-style-type: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.expenses-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid rgba(128, 128, 128, 0.366);
+    border-radius: 5px;
+}
+
+.delete-btn {
+    background-color: #ff4d4d;
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.delete-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Floating add button - now positioned on the bottom right */
+.floating-add-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    /* Changed from left to right */
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: none;
+    background-color: #4caf50;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+.floating-add-btn:hover {
+    transform: scale(1.1);
+}
+
+.floating-add-btn:active {
+    transform: scale(0.95);
+}
+
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    /* Darker backdrop */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Modal Box */
+.modal {
+    background: #1e1e1ea3;
+    padding: 25px;
+    border-radius: 12px;
+    width: 80%;
+    max-width: 400px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    text-align: center;
+    padding-right: 40px;
+}
+
+.modal h2 {
+    color: #F1F1F1;
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.input-field {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 12px;
+    border: none;
+    border-radius: 8px;
+    background: #292929;
+    color: white;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease-in-out;
+}
+
+.input-field::placeholder {
+    color: #B3B3B3;
+}
+
+.another {
+    width: 109%;
+    max-width: 423px;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+.add-btn {
+    flex: 1;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.691), rgb(70, 126, 137));
+    border: none;
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s ease-in-out;
+    margin-right: 8px;
+}
+
+.cancel-btn {
+    flex: 1;
+    background: #1e1e1ea3;
+    border: none;
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    border: 2px solid grey;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s ease-in-out;
+}
+
+.add-btn:hover {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.496), rgba(66, 156, 191, 0.671));
+}
+
+.cancel-btn:hover {
+    background: linear-gradient(135deg, #D32F2F, #C62828);
+}
+
+.floating-add-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, #4CAF50, #66BB6A);
+    color: white;
+    font-size: 1.8rem;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out, background 0.3s;
+}
+
+.floating-add-btn:hover {
+    transform: scale(1.1);
+    background: linear-gradient(135deg, #388E3C, #43A047);
+}
+
+.floating-add-btn:active {
+    transform: scale(0.95);
+}
+
+/* Expense List */
+.expenses-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Expense Item */
+.expense-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #121212;
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    width: 100%;
+    max-width: 310px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.expense-item:hover {
+    transform: scale(1.02);
+    box-shadow: 0px 5px 12px rgba(0, 0, 0, 0.3);
+}
+
+.expense-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.expense-name {
+    font-size: 1rem;
+    color: #F1F1F1;
+    font-weight: bold;
+}
+
+.expense-amount {
+    font-size: 0.9rem;
+    color: #42A5F5;
+    font-weight: 500;
+}
+
+/* Delete Button */
+.delete-btn {
+    background-color: #121212;
+    border: 10px solid grey;
+    color: white;
+    border: none;
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out, transform 0.2s;
+}
+
+
+.delete-btn:hover {
+    background-color: #121212;
+    transform: scale(1.1);
+}
+
+.delete-btn:active {
+    transform: scale(0.95);
+}
+
+.delete-btn:disabled {
+    background: #121212;
+    cursor: not-allowed;
+}
+
+.total {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+    flex-direction: row;
+    background-color: #121212;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-family: 'Arial', sans-serif;
+}
+
+.total-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+}
+
+.total-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: #6c757d;
+}
+
+.total-amount {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.payable {
+    color: #e74c3c;
+}
+
+.receivable {
+    color: #2ecc71;
+}
+
+@media (max-width: 768px) {
+    .total {
+        align-items: center;
+    }
+
+    .total-item {
+        align-items: center;
+    }
+}
+
+.expenses-list {
+    max-height: 450px; /* Adjust the height as needed */
+    overflow-y: scroll;  /* Always allows scrolling */
+    scrollbar-width: thin; /* For Firefox: Makes the scrollbar thinner */
+    scrollbar-color: transparent transparent; /* For Firefox: Hides the scrollbar */
+}
+
+/* For Webkit browsers (Chrome, Safari, etc.) */
+.expenses-list::-webkit-scrollbar {
+    width: 0px; /* Hides the scrollbar */
+}
+
+.expenses-list::-webkit-scrollbar-thumb {
+    background: transparent; /* Makes the thumb transparent */
+}
