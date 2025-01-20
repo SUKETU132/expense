@@ -40,7 +40,7 @@ const BlackThemedRegisterForm = () => {
         setIsLoading(true);
 
         try {
-            const response = await axios.post("https://expense-manager-p0kpxe4eo-suketu-vaniyas-projects.vercel.app/api/v1/manager/register", {
+            const response = await axios.post("https://expense-manager-5.onrender.com/api/v1/manager/register", {
                 username: formData.username,
                 userName: formData.email,
                 password: formData.password,
@@ -75,7 +75,7 @@ const BlackThemedRegisterForm = () => {
         setIsLoading(true);
 
         try {
-            const response = await axios.post("https://expense-manager-p0kpxe4eo-suketu-vaniyas-projects.vercel.app/api/v1/manager/login", {
+            const response = await axios.post("https://expense-manager-5.onrender.com/api/v1/manager/login", {
                 userName: formData.email,
                 password: formData.password,
             });
