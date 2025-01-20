@@ -13,7 +13,7 @@ function App() {
   useEffect(() => {
     const getCurrentUser = async () => {
       try {
-        const response = await axios.get("expense-manager-three-eta.vercel.app/api/v1/manager/user/getCurrentUser", {
+        const response = await axios.get("https://expense-manager-5.onrender.com/api/v1/manager/user/getCurrentUser", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
