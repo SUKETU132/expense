@@ -1,25 +1,142 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import axios from 'axios';
 import Loader from './Loader';
-import './style/style.css';
 import { toast } from 'react-toastify';
-import Button from './Button';
+import './style/style.css';
+
+const ExpenseItem = React.memo(({ expense, onEdit, onDelete, loading }) => (
+  <li className="expense-item">
+    <div className="expense-details">
+      <span className="expense-name">{expense.name}</span>
+      <span className="expense-amount">₹{expense.amount}</span>
+    </div>
+    <span className={`expense-status ${expense.paymentStatus}`}>
+      {expense.paymentStatus === 'payable' ? 'Payable' : 'Receivable'}
+    </span>
+    <div className="expense-actions">
+      <button onClick={onEdit} disabled={loading} className="edit-btn">✏️</button>
+      <button onClick={onDelete} disabled={loading} className="delete-btn">✖</button>
+    </div>
+  </li>
+));
+
+ExpenseItem.propTypes = {
+  expense: PropTypes.object.isRequired,
+  onEdit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+  loading: PropTypes.bool.isRequired,
+};
+
+const ExpenseDateGroup = React.memo(({ date, expenses, onEdit, onDelete, loading }) => (
+  <div className="date-group">
+    <h3 className="date-header">
+      {new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+    </h3>
+    <ul className="expenses-list">
+      {expenses.map(e => (
+        <ExpenseItem
+          key={e._id}
+          expense={e}
+          onEdit={() => onEdit(e)}
+          onDelete={() => onDelete(e._id)}
+          loading={loading}
+        />
+      ))}
+    </ul>
+  </div>
+));
+
+ExpenseDateGroup.propTypes = {
+  date: PropTypes.string.isRequired,
+  expenses: PropTypes.array.isRequired,
+  onEdit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+  loading: PropTypes.bool.isRequired,
+};
+
+const ExpenseModal = ({ isOpen, mode, expense, onClose, onSave, loading }) => {
+  const [form, setForm] = useState({ name: '', amount: '', paymentStatus: 'payable' });
+
+  useEffect(() => {
+    if (mode === 'edit' && expense) {
+      setForm({ name: expense.name, amount: expense.amount, paymentStatus: expense.paymentStatus });
+    } else {
+      setForm({ name: '', amount: '', paymentStatus: 'payable' });
+    }
+  }, [mode, expense]);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = () => {
+    if (!form.name || !form.amount) {
+      toast.error('All fields are required!', { style: { backgroundColor: 'black', width: '320px', color: 'white' } });
+      return;
+    }
+    onSave(mode === 'edit' ? { _id: expense._id, ...form } : form);
+    onClose();
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal">
+        <h2>{mode === 'add' ? 'Add Expense' : 'Update Expense'}</h2>
+        {mode === 'add' && (
+          <input
+            type="text"
+            placeholder="Enter Name"
+            value={form.name}
+            onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+            className="input-field"
+          />
+        )}
+        <input
+          type="number"
+          placeholder="Enter Amount (₹)"
+          value={form.amount}
+          onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
+          className="input-field"
+        />
+        <select
+          value={form.paymentStatus}
+          onChange={e => setForm(f => ({ ...f, paymentStatus: e.target.value }))}
+          className="input-field"
+        >
+          <option value="payable">Payable</option>
+          <option value="receivable">Receivable</option>
+        </select>
+        <div className="modal-buttons">
+          <button onClick={handleSubmit} disabled={loading} className="add-btn">
+            {loading ? 'Saving...' : mode === 'add' ? 'Add' : 'Update'}
+          </button>
+          <button onClick={onClose} className="cancel-btn">Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+ExpenseModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  mode: PropTypes.oneOf(['add', 'edit']).isRequired,
+  expense: PropTypes.object,
+  onClose: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+  loading: PropTypes.bool.isRequired,
+};
 
 const FormSubmit = ({ inputQuery }) => {
   const [expenses, setExpenses] = useState([]);
-  const [fetchLoading, setFetchLoading] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [showPopup, setShowPopup] = useState(false);
-  const [error, setError] = useState('');
-  const [editExpense, setEditExpense] = useState({ amount: '', paymentStatus: 'payable' });
-  const [wannaEdit, setWannaEdit] = useState(false);
   const [totalPayable, setTotalPayable] = useState(0);
   const [totalReceivable, setTotalReceivable] = useState(0);
-  const [newExpense, setNewExpense] = useState({ name: '', amount: '', paymentStatus: 'payable' });
-  const [filteredExpenses, setFilteredExpenses] = useState([]);
+  const [loadingFetch, setLoadingFetch] = useState(false);
+  const [loadingAction, setLoadingAction] = useState(false);
+  const [error, setError] = useState('');
+  const [search, setSearch] = useState(inputQuery);
+  const [modalConfig, setModalConfig] = useState({ open: false, mode: 'add', expense: null });
 
-  const fetchExpenses = async () => {
-    setFetchLoading(true);
+  const fetchExpenses = useCallback(async () => {
+    setLoadingFetch(true);
     setError('');
     try {
       const token = localStorage.getItem('token');
@@ -27,261 +144,149 @@ const FormSubmit = ({ inputQuery }) => {
         'https://expense-manager-5.onrender.com/api/v1/manager/get-expenses',
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      setExpenses(data.data);
       setTotalPayable(data.totalPayable);
       setTotalReceivable(data.totalReceivable);
-      setExpenses(data.data);
     } catch {
       setError('Failed to load expenses');
     } finally {
-      setFetchLoading(false);
+      setLoadingFetch(false);
     }
-  };
-
-  useEffect(() => {
-    fetchExpenses();
   }, []);
 
   useEffect(() => {
-    if (!inputQuery) {
-      setFilteredExpenses(expenses);
-    } else {
-      setFilteredExpenses(
-        expenses.filter(exp =>
-          exp.name.toLowerCase().includes(inputQuery.toLowerCase())
-        )
-      );
-    }
-  }, [inputQuery, expenses]);
+    fetchExpenses();
+  }, [fetchExpenses]);
 
-  const groupedByDate = useMemo(() => {
-    return filteredExpenses.reduce((acc, exp) => {
-      const date = new Date(exp.createdAt).toISOString().slice(0, 10);
-      if (!acc[date]) acc[date] = [];
-      acc[date].push(exp);
-      return acc;
-    }, {});
-  }, [filteredExpenses]);
-
-  const handleEditClick = expense => {
-    setEditExpense({ ...expense });
-    setWannaEdit(true);
-  };
-
-  const updateExpenseHandler = async () => {
-    if (!editExpense.amount.trim()) {
-      toast.error('All fields are required!', {
-        style: { backgroundColor: 'black', width: '320px', color: 'white' }
-      });
-      return;
-    }
-    setLoading(true);
+  const actionWrapper = async fn => {
+    setLoadingAction(true);
     setError('');
     try {
-      const token = localStorage.getItem('token');
-      const { data } = await axios.put(
-        `https://expense-manager-5.onrender.com/api/v1/manager/update-expense/${editExpense._id}`,
-        { amount: editExpense.amount, paymentStatus: editExpense.paymentStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setExpenses(prev =>
-        prev.map(exp => (exp._id === data.data._id ? data.data : exp))
-      );
+      await fn();
       await fetchExpenses();
-      setEditExpense({ amount: '', paymentStatus: 'payable' });
-      setWannaEdit(false);
     } catch {
-      setError('Failed to update expense');
+      setError('Action failed');
     } finally {
-      setLoading(false);
+      setLoadingAction(false);
     }
   };
 
-  const addExpense = async () => {
-    if (!newExpense.name.trim() || !newExpense.amount.trim()) {
-      toast.error('All fields are required!', {
-        style: { backgroundColor: 'black', width: '320px', color: 'white' }
-      });
-      return;
-    }
-    setLoading(true);
-    setError('');
-    try {
+  const addExpense = expense =>
+    actionWrapper(async () => {
       const token = localStorage.getItem('token');
       await axios.post(
         'https://expense-manager-5.onrender.com/api/v1/manager/add-expense',
-        newExpense,
+        expense,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      await fetchExpenses();
-      setShowPopup(false);
-      setNewExpense({ name: '', amount: '', paymentStatus: 'payable' });
-    } catch {
-      setError('Failed to add expense');
-    } finally {
-      setLoading(false);
-    }
-  };
+      toast.success('Expense added');
+    });
 
-  const deleteExpense = async id => {
-    setLoading(true);
-    setError('');
-    try {
+  const updateExpense = ({ _id, ...payload }) =>
+    actionWrapper(async () => {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `https://expense-manager-5.onrender.com/api/v1/manager/update-expense/${_id}`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.info('Expense updated');
+    });
+
+  const deleteExpense = id =>
+    actionWrapper(async () => {
       const token = localStorage.getItem('token');
       await axios.delete(
         `https://expense-manager-5.onrender.com/api/v1/manager/delete-expense/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      await fetchExpenses();
-    } catch {
-      setError('Failed to delete expense');
-    } finally {
-      setLoading(false);
+      toast.warn('Expense deleted');
+    });
+
+  useEffect(() => {
+    if (!inputQuery) {
+      setSearch(inputQuery);
     }
-  };
+  }, [inputQuery]);
+
+  const filtered = useMemo(() => {
+    return search
+      ? expenses.filter(e => e.name.toLowerCase().includes(search.toLowerCase()))
+      : expenses;
+  }, [search, expenses]);
+
+  const grouped = useMemo(() => {
+    return filtered.reduce((acc, e) => {
+      const d = new Date(e.createdAt).toISOString().slice(0, 10);
+      (acc[d] ||= []).push(e);
+      return acc;
+    }, {});
+  }, [filtered]);
 
   return (
     <div>
-      {fetchLoading ? (
+      {loadingFetch ? (
         <Loader />
       ) : (
         <>
           <div className="total">
             <div className="total-item">
-              <span className="total-label">Total Payable:</span>
-              <span className="total-amount payable">₹{totalPayable}</span>
+              <span>Total Payable:</span>
+              <span className="payable">₹{totalPayable}</span>
             </div>
             <div className="total-item">
-              <span className="total-label">Total Receivable:</span>
-              <span className="total-amount receivable">₹{totalReceivable}</span>
+              <span>Total Receivable:</span>
+              <span className="receivable">₹{totalReceivable}</span>
             </div>
           </div>
 
           {error && <p className="error">{error}</p>}
 
-          {Object.keys(groupedByDate)
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search expenses…"
+            className="search-input"
+          />
+
+          {Object.keys(grouped)
             .sort((a, b) => b.localeCompare(a))
             .map(date => (
-              <div key={date} className="date-group">
-                <h3 className="date-header">
-                  {new Date(date).toLocaleDateString('en-IN', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric'
-                  })}
-                </h3>
-                <ul className="expenses-list">
-                  {groupedByDate[date].map(expense => (
-                    <li key={expense._id} className="expense-item">
-                      <div className="expense-details">
-                        <span className="expense-name">{expense.name}</span>
-                        <span className="expense-amount">₹{expense.amount}</span>
-                      </div>
-                      <span className={`expense-status ${expense.paymentStatus}`}>
-                        {expense.paymentStatus === 'payable' ? 'Payable' : 'Receivable'}
-                      </span>
-                      <div className="expense-actions">
-                        <button
-                          onClick={() => handleEditClick(expense)}
-                          disabled={loading}
-                          className="edit-btn"
-                          style={{ backgroundColor: '#121212', border: 'none' }}
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          onClick={() => deleteExpense(expense._id)}
-                          disabled={loading}
-                          className="delete-btn"
-                        >
-                          {loading ? 'Deleting...' : '✖'}
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <ExpenseDateGroup
+                key={date}
+                date={date}
+                expenses={grouped[date]}
+                onEdit={e => setModalConfig({ open: true, mode: 'edit', expense: e })}
+                onDelete={deleteExpense}
+                loading={loadingAction}
+              />
             ))}
 
-          <button className="floating-add-btn" onClick={() => setShowPopup(true)}>
-            +
+          <button
+            className="floating-add-btn"
+            onClick={() => setModalConfig({ open: true, mode: 'add', expense: null })}
+            disabled={loadingAction}
+          >
+            ＋
           </button>
 
-          {wannaEdit && (
-            <div className="modal-overlay">
-              <div className="modal">
-                <h2>Update Expense</h2>
-                <input
-                  type="number"
-                  placeholder="Enter Amount (₹)"
-                  value={editExpense.amount}
-                  onChange={e => setEditExpense({ ...editExpense, amount: e.target.value })}
-                  className="input-field"
-                />
-                <select
-                  value={editExpense.paymentStatus}
-                  onChange={e =>
-                    setEditExpense({ ...editExpense, paymentStatus: e.target.value })
-                  }
-                  className="input-field another"
-                >
-                  <option value="payable">Payable</option>
-                  <option value="receivable">Receivable</option>
-                </select>
-                <div className="modal-buttons">
-                  <button onClick={updateExpenseHandler} className="add-btn">
-                    {loading ? 'Updating...' : 'Update'}
-                  </button>
-                  <button onClick={() => setWannaEdit(false)} className="cancel-btn">
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {showPopup && (
-            <div className="modal-overlay">
-              <div className="modal">
-                <h2>Add Expense</h2>
-                <input
-                  type="text"
-                  placeholder="Enter Name"
-                  value={newExpense.name}
-                  onChange={e => setNewExpense({ ...newExpense, name: e.target.value })}
-                  className="input-field"
-                />
-                <input
-                  type="number"
-                  placeholder="Enter Amount (₹)"
-                  value={newExpense.amount}
-                  onChange={e => setNewExpense({ ...newExpense, amount: e.target.value })}
-                  className="input-field"
-                />
-                <select
-                  value={newExpense.paymentStatus}
-                  onChange={e =>
-                    setNewExpense({ ...newExpense, paymentStatus: e.target.value })
-                  }
-                  className="input-field another"
-                >
-                  <option value="payable">Payable</option>
-                  <option value="receivable">Receivable</option>
-                </select>
-                <div className="modal-buttons">
-                  <button onClick={addExpense} className="add-btn">
-                    {loading ? 'Adding...' : 'Add'}
-                  </button>
-                  <button onClick={() => setShowPopup(false)} className="cancel-btn">
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          <ExpenseModal
+            isOpen={modalConfig.open}
+            mode={modalConfig.mode}
+            expense={modalConfig.expense}
+            onClose={() => setModalConfig(c => ({ ...c, open: false }))}
+            onSave={modalConfig.mode === 'add' ? addExpense : updateExpense}
+            loading={loadingAction}
+          />
         </>
       )}
     </div>
   );
+};
+
+FormSubmit.propTypes = {
+  inputQuery: PropTypes.string.isRequired,
 };
 
 export default FormSubmit;
