@@ -160,47 +160,56 @@ const FormSubmit = ({ inputQuery }) => {
 
           {Object.keys(groupedByDate)
             .sort((a, b) => b.localeCompare(a))
-            .map(date => (
-              <div key={date} className="date-group">
-                <h3 className="date-header">
-                  {new Date(date).toLocaleDateString('en-IN', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric'
-                  })}
-                </h3>
-                <ul className="expenses-list">
-                  {groupedByDate[date].map(expense => (
-                    <li key={expense._id} className="expense-item">
-                      <div className="expense-details">
-                        <span className="expense-name">{expense.name}</span>
-                        <span className="expense-amount">₹{expense.amount}</span>
-                      </div>
-                      <span className={`expense-status ${expense.paymentStatus}`}>
-                        {expense.paymentStatus === 'payable' ? 'Payable' : 'Receivable'}
-                      </span>
-                      <div className="expense-actions">
-                        <button
-                          onClick={() => handleEditClick(expense)}
-                          disabled={loading}
-                          className="edit-btn"
-                          style={{ backgroundColor: '#121212', border: 'none' }}
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          onClick={() => deleteExpense(expense._id)}
-                          disabled={loading}
-                          className="delete-btn"
-                        >
-                          {loading ? 'Deleting...' : '✖'}
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+            .map(date => {
+              const dayTotal = groupedByDate[date].reduce(
+                (sum, exp) => sum + exp.amount,
+                0
+              );
+              return (
+                <div key={date} className="date-group">
+                  <h3 className="date-header">
+                    <span>
+                      {new Date(date).toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      })}
+                    </span>
+                    <span className="date-total">₹{dayTotal}</span>
+                  </h3>
+                  <ul className="expenses-list">
+                    {groupedByDate[date].map(expense => (
+                      <li key={expense._id} className="expense-item">
+                        <div className="expense-details">
+                          <span className="expense-name">{expense.name}</span>
+                          <span className="expense-amount">₹{expense.amount}</span>
+                        </div>
+                        <span className={`expense-status ${expense.paymentStatus}`}>
+                          {expense.paymentStatus === 'payable' ? 'Payable' : 'Receivable'}
+                        </span>
+                        <div className="expense-actions">
+                          <button
+                            onClick={() => handleEditClick(expense)}
+                            disabled={loading}
+                            className="edit-btn"
+                            style={{ backgroundColor: '#121212', border: 'none' }}
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            onClick={() => deleteExpense(expense._id)}
+                            disabled={loading}
+                            className="delete-btn"
+                          >
+                            {loading ? 'Deleting...' : '✖'}
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
 
           <button className="floating-add-btn" onClick={() => setShowPopup(true)}>
             +
