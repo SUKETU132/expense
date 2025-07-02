@@ -43,6 +43,24 @@
     cursor: not-allowed;
 }
 
+.date-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #e0e0e0;
+  padding: 8px 0;
+  border-bottom: 1px solid #333;
+}
+
+.date-total {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #00ffc6;
+}
+
+
 /* Floating add button - now positioned on the bottom right */
 .floating-add-btn {
     position: fixed;
@@ -334,3 +352,4 @@
 .expenses-list::-webkit-scrollbar-thumb {
     background: transparent; /* Makes the thumb transparent */
 }
+
