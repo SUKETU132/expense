@@ -1,25 +1,31 @@
 import { ToastContainer } from 'react-toastify';
 import { useEffect } from 'react';
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, Outlet } from "react-router-dom";
 import axios from "axios";
-import { login, logout } from './store/authSlice';
-import "./App.css"
+
+import { login, logout, selectAuthStatus, selectUserData } from './store/authSlice';
+import "./App.css";
 
 function App() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const isLoggedIn = useSelector(selectAuthStatus);
+  const currentUser = useSelector(selectUserData);
+
   useEffect(() => {
     const getCurrentUser = async () => {
       try {
-        const response = await axios.get("https://expense-manager-5.onrender.com/api/v1/manager/user/getCurrentUser", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          withCredentials: true,
-        });
-
+        const response = await axios.get(
+          "https://expense-manager-5.onrender.com/api/v1/manager/user/getCurrentUser",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            withCredentials: true,
+          }
+        );
         return response;
       } catch (error) {
         console.error("Login first", error);
@@ -36,12 +42,21 @@ function App() {
         dispatch(logout());
       }
     });
+  }, [dispatch, navigate]);
 
-  }, [dispatch]);
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate('/login');
+    }
+  }, [isLoggedIn, navigate]);
 
   return (
     <main>
-      <Outlet />
+      {isLoggedIn ? (
+        <Outlet />
+      ) : (
+        <p>Checking authentication…</p>
+      )}
       <ToastContainer position="top-center" autoClose={2000} hideProgressBar />
     </main>
   );
