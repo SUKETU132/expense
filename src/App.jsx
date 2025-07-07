@@ -56,7 +56,7 @@ export default function App() {
           </div>
         </div>
       )}
-      {!loading && (isLoggedIn ? <Outlet /> : <p>Redirecting to login…</p>)}
+      {!loading && <Outlet />} 
       <ToastContainer position="top-center" autoClose={2000} hideProgressBar />
     </main>
   )
