@@ -42,7 +42,7 @@ export default function App() {
   }, [dispatch, navigate])
 
   useEffect(() => {
-    if (!isLoggedIn && !loading) navigate('/login')
+    if (!isLoggedIn && !loading) navigate('/')
   }, [isLoggedIn, loading, navigate])
 
   return (
